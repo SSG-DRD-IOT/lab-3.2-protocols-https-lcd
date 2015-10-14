@@ -1,6 +1,6 @@
 {
-  "name": "blankapp",
-  "description": "",
+  "name": "rest_API_with_actuator",
+  "description": "API for LCD",
   "version": "0.0.0",
   "main": "main.js",
   "engines": {
