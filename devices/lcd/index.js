@@ -46,6 +46,7 @@ app.get('/lcd/text/', function (req, res) {
 
 app.post('/lcd/text/', function (req, res) {
   lcdtext = req.query.lcdtext;
+  mylcd.clear();
   mylcd.write(lcdtext);
   res.status(201).send("Success");
 });
