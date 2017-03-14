@@ -1,6 +1,6 @@
 {
   "name": "rest_API_with_actuator",
-  "description": "API for LCD",
+  "description": "Restful HTTP API for controlling an LCDs backlight and text",
   "version": "0.0.0",
   "main": "main.js",
   "engines": {
