@@ -21,6 +21,7 @@ app.use(function (req, res, next) {
   next();
 });
 
+// Instantiate the backlight and lcdtext variables
 var backlight = {
     r:0,
     g:0,
@@ -28,8 +29,14 @@ var backlight = {
 };
 
 var lcdtext = "";
+
+// When the service starts clearn the backlight
 mylcd.setColor(backlight.r,backlight.g,backlight.b);
 
+////////////////////////////////////////////////////
+// GET /lcd/backlight and /lcd/text
+// returns the value of the backlight or lcdtext
+////////////////////////////////////////////////////
 app.get('/lcd/backlight/', function (req, res) {
   res.status(200).json(backlight);
 });
