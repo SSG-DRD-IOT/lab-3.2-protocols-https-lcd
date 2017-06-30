@@ -22,14 +22,22 @@
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// Require the filesystem and HTTPS modules
+var fs = require('fs');
+var https = require('https');
+
+// Load the privateKey and certificate
+var privateKey  = fs.readFileSync('./certs/server.key', 'utf8');
+var certificate = fs.readFileSync('./certs/server.crt', 'utf8');
+
+var credentials = {key: privateKey, cert: certificate};
 // The express library provides a quick and easy way to create on HTTP server
 var express = require('express');
+// Declare the HTTP server as a variable named "app"
+var app = express();
 
 // The body-parser library allows us to declare the server will use JSON format
 var bodyParser = require('body-parser');
-
-// Declare the HTTP server as a variable named "app"
-var app = express();
 
 // Instantiate the backlight and lcdtext variables
 var backlight = {
@@ -71,7 +79,7 @@ var setLCDColor = function(r, g, b) {
 
 var setLCDText = function(text) {
   console.log("Set text: ", text)
-  if (noLCD == false) {
+  if (noLCD === false) {
     mylcd.clear();
     mylcd.write(text);
   }
@@ -79,7 +87,7 @@ var setLCDText = function(text) {
 
 var clearLCDText = function() {
   console.log("Clearing LCD Text")
-  if (noLCD == false) {
+  if (noLCD === false) {
     mylcd.clear();
   }
 }
@@ -129,9 +137,11 @@ app.delete('/lcd/text/', function(req, res) {
   res.status(204).send("Deleted");
 });
 
-var server = app.listen(3000, function() {
-  var host = server.address().address;
-  var port = server.address().port;
+var httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(8443, function() {
+  var host = httpsServer.address().address;
+  var port = httpsServer.address().port;
 
   console.log('Example app listening at http://%s:%s', host, port);
 });
