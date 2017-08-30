@@ -21,122 +21,108 @@
  * OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-
-// Require the filesystem and HTTPS modules
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 1
+// Load the filesystem, HTTPS and Express libraries and declare an Express variable.
+// The Express library provides an easy way to create on HTTPS server, and the 
+// body-parser library allows us to declare that the server will use JSON format.
+////////////////////////////////////////////////////////////////////////////////
 var fs = require('fs');
 var https = require('https');
+var express = require('express');
+var bodyParser = require('body-parser');
+var app = express();
+app.use(bodyParser.json());
+// end ISTV block 
 
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 2
 // Load the privateKey and certificate
+////////////////////////////////////////////////////////////////////////////////
 var privateKey  = fs.readFileSync('./certs/server.key', 'utf8');
 var certificate = fs.readFileSync('./certs/server.crt', 'utf8');
-
 var credentials = {key: privateKey, cert: certificate};
-// The express library provides a quick and easy way to create on HTTP server
-var express = require('express');
-// Declare the HTTP server as a variable named "app"
-var app = express();
+// end ISTV block 
 
-// The body-parser library allows us to declare the server will use JSON format
-var bodyParser = require('body-parser');
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 3
+// Load the UPM LCD library and create an LCD object
+////////////////////////////////////////////////////////////////////////////////
+var LCD = require("jsupm_jhd1313m1");
+var OFFSET = 512;
+var mylcd = new LCD.Jhd1313m1(0 + OFFSET, 0x3E, 0x62);
+// end ISTV block 
 
-// Instantiate the backlight and lcdtext variables
-var backlight = {
-  r: 0,
-  g: 0,
-  b: 0
-};
-
-// Holds the value of the text displayed on the LCD
-var lcdtext = "";
-
-// noLCD is a boolean to test whether an LCD is present
-var noLCD = false
-
-// Load the UPM LCD module
-try {
-  var LCD = require("jsupm_jhd1313m1");
-  var OFFSET = 512;
-  var mylcd = new LCD.Jhd1313m1(0 + OFFSET, 0x3E, 0x62);
-} catch (e) {
-  noLCD = true
-}
-
-// parse application/json
-app.use(bodyParser.json());
-
-// This function will print the route for each incoming HTTP request
-app.use(function(req, res, next) {
-  console.log(req.body); // populated!
-  next();
-});
-
-var setLCDColor = function(r, g, b) {
-  console.log("Setting Backlight to (" + r + "," + b + "," + g + ")")
-  if (noLCD === false) {
-    mylcd.setColor(backlight.r, backlight.g, backlight.b);
-  }
-}
-
-var setLCDText = function(text) {
-  console.log("Set text: ", text)
-  if (noLCD === false) {
-    mylcd.clear();
-    mylcd.write(text);
-  }
-}
-
-var clearLCDText = function() {
-  console.log("Clearing LCD Text")
-  if (noLCD === false) {
-    mylcd.clear();
-  }
-}
-
-// When the service starts clearn the backlight
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 4
+// Instantiate the backlight and text variables which holds the value of 
+// the text displayed on the LCD and turn the backlight off
+////////////////////////////////////////////////////////////////////////////////
+var backlight = {r: 0, g: 0, b: 0};
 setLCDColor(backlight.r, backlight.g, backlight.b);
 
-////////////////////////////////////////////////////
-// GET /lcd/backlight and /lcd/text
-// returns the value of the backlight or lcdtext
-////////////////////////////////////////////////////
+var text = "";
+// end ISTV block 
+
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 5
+// We'll create two HTTPS GET routines, GET /lcd/backlight and /lcd/text. 
+// One to fetch the value of the backlight and the other to get the value of 
+// the LCD text.
+////////////////////////////////////////////////////////////////////////////////
 app.get('/lcd/backlight/', function(req, res) {
   res.status(200).json(backlight);
 });
-app.get('/lcd/text/', function(req, res) {
-  res.status(200).json(lcdtext);
-});
 
+app.get('/lcd/text/', function(req, res) {
+  res.status(200).json(text);
+});
+// end ISTV block 
+
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 6
+// We'll create two HTTPS POST routines, POST /lcd/backlight and /lcd/text. 
+// These change the value of the backlight and text.
+////////////////////////////////////////////////////////////////////////////////
 app.post('/lcd/backlight/', function(req, res) {
   backlight = {
     r: parseInt(req.query.r),
     g: parseInt(req.query.g),
     b: parseInt(req.query.b)
   };
-  setLCDColor(backlight.r, backlight.g, backlight.b)
+  mylcd.setColor(backlight.r, backlight.g, backlight.b);
   res.status(201).send("Success");
 });
 
 app.post('/lcd/text/', function(req, res) {
-  lcdtext = req.query.lcdtext;
-  setLCDText(lcdtext)
+  mylcd.clear();
+  mylcd.write(req.query.text);
   res.status(201).send("Success");
 });
+// end ISTV block 
 
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 7
+// and lastly two HTTPS DELETE routines, DELETE /lcd/backlight and /lcd/text. 
+// Which, of course, clear the text and turn of the backlight.
+////////////////////////////////////////////////////////////////////////////////
 app.delete('/lcd/backlight/', function(req, res) {
-  backlight = {
-    r: 0,
-    g: 0,
-    b: 0
-  };
-  setLCDColor(backlight.r, backlight.g, backlight.b);
+  backlight = {r: 0, g: 0, b: 0};
+  mylcd.setColor(backlight.r, backlight.g, backlight.b);
   res.status(204).send("Deleted");
 });
 
 app.delete('/lcd/text/', function(req, res) {
-  clearLCDText()
+  mylcd.clear();
   res.status(204).send("Deleted");
 });
+// end ISTV block 
 
+////////////////////////////////////////////////////////////////////////////////
+// ISTV Block 8
+// Now that we've defined all the HTTPS servers Restful APIs we'll instatiate the 
+// service and have it listen to a port.
+////////////////////////////////////////////////////////////////////////////////
 var httpsServer = https.createServer(credentials, app);
 
 httpsServer.listen(8443, function() {
@@ -145,3 +131,5 @@ httpsServer.listen(8443, function() {
 
   console.log('Example app listening at http://%s:%s', host, port);
 });
+// end ISTV block 
+
